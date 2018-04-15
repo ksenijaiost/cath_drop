@@ -2,6 +2,8 @@ import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 
 public class GameWindow  extends JFrame {
@@ -11,9 +13,10 @@ public class GameWindow  extends JFrame {
     private static Image gameOver;
     private static Image drop;
     private static float dropLeft =200;
-    private static float dropTop = 200;
+    private static float dropTop = -100;
     private  static long lastFrameTime;
     private static float dropVelocity = 200;
+    private  static int score;
 
 
     public static void main(String[] args) throws IOException {
@@ -27,6 +30,24 @@ public class GameWindow  extends JFrame {
         gameWindow.setResizable(false);
         lastFrameTime = System.nanoTime();
         GameField gameField = new GameField();
+        gameField.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                int x = e.getX();
+                int y = e.getY();
+                float dropRight = dropLeft + drop.getWidth(null);
+                float dropBottom = dropTop + drop.getHeight(null);
+                boolean isDrop = x >= dropLeft && x <= dropRight && y >= dropTop && y <= dropBottom;
+                if (isDrop) {
+                    dropTop = -100;
+                    dropLeft = (float)Math.random();
+                    score ++;
+                }
+                dropVelocity = dropVelocity +20;
+            }
+        });
+
         gameWindow.add(gameField);
         gameWindow.setVisible(true);
     }
@@ -40,8 +61,12 @@ public class GameWindow  extends JFrame {
         g.drawImage(drop,(int)dropLeft,(int)dropTop,null);
 
         dropTop = dropTop +dropVelocity*deltaTime;
+        dropLeft = dropLeft + dropVelocity*deltaTime;
 
-        //g.drawImage(gameOver,280,120,null);
+        if (dropTop > gameWindow.getHeight() ) {
+            g.drawImage(gameOver, 280, 120, null);
+            gameWindow.setTitle("Score " + score);
+        }
     }
 
     private static class GameField extends JPanel {
